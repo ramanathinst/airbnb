@@ -24,6 +24,21 @@ const listingRouter = require("./routes/listing.js")
 const reviewsRouter = require("./routes/review.js")
 const userRouter = require("./routes/user.js")
 
+// const mongoDB = 'mongodb://127.0.0.1:27017/airbnb'
+
+const dbUrl = process.env.ATLASDB_URL;
+
+main()
+    .then((res) => {
+        console.log("connection to DB!")
+    })
+    .catch(err => console.log(err));
+
+async function main() {
+    await mongoose.connect(dbUrl);
+}
+
+
 app.use(methodOverride("_method"))
 app.engine('ejs', ejsMate);
 app.set("view engine", "ejs")
@@ -33,17 +48,19 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 // Mongo DB Store
 
-const dbUrl = process.env.ATLASDB_URL
 
 
 const store = MongoStore.create({
     mongoUrl: dbUrl,
-    touchAfter: 24 * 3600,
     crypto: {
         secret: process.env.SECRET,
-    }
+    },
+    touchAfter: 24 * 3600,
 })
 
+store.on("error",() => {
+    console.log("ERROR IN MONGO SESSION STORE",err)
+})
 
 // Cookie Session
 const sessionOptions = {
@@ -131,15 +148,3 @@ app.listen(port, () => {
 //     })
 //     res.send("data save")
 // })
-
-
-main()
-    .then((res) => {
-        console.log("connection to DB!")
-    })
-    .catch(err => console.log(err));
-
-async function main() {
-    await mongoose.connect(dbUrl);
-}
-
